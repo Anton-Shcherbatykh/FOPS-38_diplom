@@ -49,9 +49,13 @@ Terraform сконфигурирован и создание инфрастру�
 diplom-practicum-yc/
 
 ├── backend/           # Конфигурация для сервисного аккаунта и S3-бакета
+
 │   ├── main.tf        # Создание сервисного аккаунта и S3-бакета
+
 │   ├── variables.tf
+
 │   └── providers.tf 
+
 └── infrastructure/    # Основная конфигурация инфраструктуры
     ├── main.tf
     ├── variables.tf
