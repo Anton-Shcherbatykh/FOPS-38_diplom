@@ -68,8 +68,6 @@ S3-бакет
 
 Теперь, когда [backend](https://github.com/Anton-Shcherbatykh/FOPS-38_diplom/blob/main/Files/backend/main.tf) создан, на следующем шаге приступаю к настройке основной [инфраструктуры](https://github.com/Anton-Shcherbatykh/FOPS-38_diplom/blob/main/Files/infrastructure/providers.tf), используя созданный бакет для хранения state-файла.
 
-![alt text](Pictures/pic08.jpg)
-
 Проверяю работу команды terraform apply из папки infrastructure:
 
 ![alt text](Pictures/pic08.jpg)
