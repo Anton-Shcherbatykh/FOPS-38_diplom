@@ -57,6 +57,7 @@ diplom-practicum-yc/
 │   └── providers.tf 
 
 └── infrastructure/    # Основная конфигурация инфраструктуры
+
     ├── main.tf
     ├── variables.tf
     └── providers.tf   # Настройка провайдера и бекенда
