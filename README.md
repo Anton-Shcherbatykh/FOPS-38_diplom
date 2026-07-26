@@ -42,4 +42,47 @@ Terraform сконфигурирован и создание инфрастру�
 Полученная конфигурация инфраструктуры является предварительной, поэтому в ходе дальнейшего выполнения задания возможны изменения.
 
 ---
+### Облачная инфраструктура
+
+Для удобства решил организовать файлы в две отдельные директории. Это позволит разделить управление служебными ресурсами (backend) и основной инфраструктурой (infrastructure). Полагаю, это упростит поддержку и переиспользование.
+
+diplom-practicum-yc/
+├── backend/           # Конфигурация для сервисного аккаунта и S3-бакета
+│   ├── main.tf        # Создание сервисного аккаунта и S3-бакета
+│   ├── variables.tf
+│   └── providers.tf 
+└── infrastructure/    # Основная конфигурация инфраструктуры
+    ├── main.tf
+    ├── variables.tf
+    └── providers.tf   # Настройка провайдера и бекенда
+
+На первом шаге выполнения задания создаю [сервисный аккаунт с минимальными правами и бакет Object Storage], где будет храниться state-файл основной инфраструктуры.
+
+Сервисный аккаунт
+
+![alt text](Pictures/pic01.jpg)
+
+S3-бакет
+
+![alt text](Pictures/pic02.jpg)
+
+Теперь, когда [backend](https://github.com/Anton-Shcherbatykh/FOPS-38_diplom/blob/main/Files/backend/main.tf) создан, на следующем шаге приступаю к настройке основной [инфраструктуры](https://github.com/Anton-Shcherbatykh/FOPS-38_diplom/blob/main/Files/infrastructure/providers.tf), используя созданный бакет для хранения state-файла.
+
+![alt text](Pictures/pic08.jpg)
+
+Проверяю работу команды terraform apply из папки infrastructure:
+
+![alt text](Pictures/pic08.jpg)
+
+- убеждаюсь, что состояние бакета изменилось и в нём появился объект
+
+![alt text](Pictures/pic03.jpg)
+
+- убеждаюсь, что в бакете Object Storage появилась папка infrastructure
+
+![alt text](Pictures/pic04.jpg)
+
+- появился файл terraform.tfstate
+
+
 
