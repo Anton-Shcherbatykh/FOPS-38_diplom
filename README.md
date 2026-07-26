@@ -13,7 +13,7 @@
 ---
 
 ## Этапы выполнения:
-### Создание облачной инфраструктуры
+### Этап 1. Создание облачной инфраструктуры
 
 Для начала необходимо подготовить облачную инфраструктуру в ЯО при помощи Terraform.
 
@@ -99,3 +99,30 @@ S3-бакет
 ![alt text](Pictures/pic010.jpg)
 
 Видно, что сеть и подсети удалены, файл состояния в бакете очищен (объём информации в нём уменьшен с Килобайт до двух сотен байт).
+
+## Этапы выполнения:
+### Этап 2. Создание Kubernetes кластера
+
+На этом этапе необходимо создать [Kubernetes](https://kubernetes.io/ru/docs/concepts/overview/what-is-kubernetes/) кластер на базе предварительно созданной инфраструктуры. Требуется обеспечить доступ к ресурсам из Интернета.
+
+Это можно сделать двумя способами:
+
+Рекомендуемый вариант: самостоятельная установка Kubernetes кластера.
+
+а). При помощи Terraform подготовить как минимум 3 виртуальных машины Compute Cloud для создания Kubernetes-кластера. Тип виртуальной машины следует выбрать самостоятельно с учётом требовании к производительности и стоимости. Если в дальнейшем поймете, что необходимо сменить тип инстанса, используйте Terraform для внесения изменений.
+
+б). Подготовить [ansible](https://www.ansible.com/) конфигурации, можно воспользоваться, например [Kubespray](https://kubernetes.io/docs/setup/production-environment/tools/kubespray/)
+
+в). Задеплоить Kubernetes на подготовленные ранее инстансы, в случае нехватки каких-либо ресурсов вы всегда можете создать их при помощи Terraform.
+
+Альтернативный вариант: воспользуйтесь сервисом [Yandex Managed Service for Kubernetes](https://cloud.yandex.ru/services/managed-kubernetes)
+
+а). С помощью terraform resource для [kubernetes](https://registry.terraform.io/providers/yandex-cloud/yandex/latest/docs/resources/kubernetes_cluster) создать региональный мастер kubernetes с размещением нод в разных 3 подсетях
+
+б). С помощью terraform resource для [kubernetes node group](https://registry.terraform.io/providers/yandex-cloud/yandex/latest/docs/resources/kubernetes_node_group)
+
+Ожидаемый результат:
+
+- Работоспособный Kubernetes кластер.
+- В файле ```~/.kube/config``` находятся данные для доступа к кластеру.
+- Команда ```kubectl get pods --all-namespaces``` отрабатывает без ошибок.
