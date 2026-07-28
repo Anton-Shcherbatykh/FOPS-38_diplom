@@ -298,7 +298,7 @@ terraform apply              # создание ресурсов
     - публичный IP (nat = true),
     - метаданные с SSH-ключом.
 
-Для выполнения данной части проекта я также установил Ansible и зависимости
+Для дальнейшего выполнения второй части проекта я также установил Ansible и зависимости
 
 ```sudo apt install ansible git python3-pip python3-venv -y```
 
@@ -312,4 +312,49 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-После того, как всё было успешно установлено 
+После того, как всё было успешно установлено, для автоматического обновления инвентаря после пересоздания ВМ написал bash-скрипт ```~/generate_inventory.sh```, использующий ```terraform output```. Это упростило мне работу после пересоздания ВМ (а из-за ошибок при выполнении задания пересоздавать ВМ пришлось несколько раз).
+
+Затем в ранее созданном виртуальном пространстве выполнил запуск ansible-playbook
+
+```ansible-playbook -i inventory/mycluster/inventory.ini cluster.yml -b -v --private-key=~/.ssh/homework3818```
+
+В процессе установки возникла ошибка при задаче ```etcd : Get currently-deployed etcd version```, но она была проигнорирована, так как Kubespray использовал встроенный ```etcd``` (запущенный как системный сервис на мастер-ноде). Это подтверждается отсутствием пода ```etcd``` в ```kube-system``` и успешной работой кластера.
+
+![alt text](Pictures/pic018.jpg)
+
+Итог плейбука: ```failed=0```, все узлы успешно настроены
+
+Сервис etcd успешно запущен и работает
+
+![alt text](Pictures/pic017.jpg)
+
+Т.к. файл ```admin.conf``` находится на мастер-ноде по пути ```/etc/kubernetes/admin.conf```, то для получения ```kubeconfig``` необходимо скопировать его (файл) на локальную машину VM5:
+```bash
+ssh -i ~/.ssh/homework3818 ubuntu@51.250.12.95 "sudo cat /etc/kubernetes/admin.conf" > ~/kubespray/inventory/mycluster/admin.conf
+mkdir -p ~/.kube
+cp ~/kubespray/inventory/mycluster/admin.conf ~/.kube/config
+```
+
+Для доступа из внешней сети в ~/.kube/config меняю внутренний IP мастер-узла на публичный:
+
+```bash
+sed -i 's/10.1.0.20/51.250.12.95/g' ~/.kube/config
+```
+Из-за того, что сертификат API-сервера не включает публичный IP, добавил параметр ```insecure-skip-tls-verify: true``` (так сказать, для тестового окружения).
+
+Проверяю работоспособность созданного кластера
+```bash
+kubectl get nodes
+kubectl get pods --all-namespaces
+```
+
+Все системные поды (Calico, CoreDNS, kube-proxy, nginx-proxy, nodelocaldns) в статусе ```Running```
+
+![alt text](Pictures/pic016.jpg)
+
+**Результаты по созданию кластера**
+
+- Установлен Kubernetes-кластер с использованием Kubespray (самостоятельная установка, не Managed Service).
+- Настроен доступ к API-серверу из интернета.
+- Проверена работа всех узлов и системных компонентов.
+- Кластер готов к развёртыванию приложений и дальнейшему использованию в рамках дипломного проекта.
