@@ -126,3 +126,169 @@ S3-бакет
 - Работоспособный Kubernetes кластер.
 - В файле ```~/.kube/config``` находятся данные для доступа к кластеру.
 - Команда ```kubectl get pods --all-namespaces``` отрабатывает без ошибок.
+
+---
+
+Создание Kubernetes кластера
+
+В существующий файл [main.tf](https://github.com/Anton-Shcherbatykh/FOPS-38_diplom/blob/main/Files/infrastructure/main.tf) добавлены следующие блоки:
+
+**Образ Ubuntu 22.04**
+```bash
+data "yandex_compute_image" "ubuntu" {
+  family = "ubuntu-2204-lts"
+}
+```
+
+**Дополнительная группа безопасности ```k8s_sg``` для узлов кластера**
+```bash
+resource "yandex_vpc_security_group" "k8s_sg" {
+  name        = "k8s-sg"
+  description = "Security group for Kubernetes nodes"
+  network_id  = yandex_vpc_network.main.id
+
+  egress {
+    protocol       = "ANY"
+    description    = "Allow all outbound"
+    v4_cidr_blocks = ["0.0.0.0/0"]
+    from_port      = 0
+    to_port        = 65535
+  }
+
+  ingress {
+    protocol       = "TCP"
+    description    = "SSH"
+    v4_cidr_blocks = ["0.0.0.0/0"]
+    port           = 22
+  }
+
+  ingress {
+    protocol       = "ANY"
+    description    = "Internal cluster traffic"
+    v4_cidr_blocks = ["10.0.0.0/8"]
+    from_port      = 0
+    to_port        = 65535
+  }
+
+  ingress {
+    protocol       = "TCP"
+    description    = "Kubernetes API"
+    v4_cidr_blocks = ["0.0.0.0/0"]
+    port           = 6443
+  }
+
+  ingress {
+    protocol       = "TCP"
+    description    = "Kubelet API"
+    v4_cidr_blocks = ["10.0.0.0/8"]
+    port           = 10250
+  }
+
+  ingress {
+    protocol       = "TCP"
+    description    = "etcd client"
+    v4_cidr_blocks = ["10.0.0.0/8"]
+    port           = 2379
+  }
+}
+```
+
+**Ресурсы трёх виртуальных машин**
+```bash
+locals {
+  zones          = ["ru-central1-a", "ru-central1-b", "ru-central1-d"]
+  ssh_public_key = file(var.ssh_public_key_path)
+}
+
+resource "yandex_compute_instance" "k8s_node" {
+  count = 3
+
+  name        = "k8s-node-${count.index + 1}"
+  platform_id = "standard-v4a"   # выбран как оптимальный по цене/производительности
+  zone        = local.zones[count.index % length(local.zones)]
+
+  resources {
+    cores  = 2
+    memory = 4
+  }
+
+  boot_disk {
+    initialize_params {
+      image_id = data.yandex_compute_image.ubuntu.id
+      size     = 50
+    }
+  }
+
+  network_interface {
+    subnet_id          = yandex_vpc_subnet.subnets[count.index % length(local.zones)].id
+    security_group_ids = [yandex_vpc_security_group.k8s_sg.id, yandex_vpc_security_group.default.id]
+    nat                = true   # публичный IP
+  }
+
+  metadata = {
+    ssh-keys = "ubuntu:${local.ssh_public_key}"
+    user-data = <<-EOF
+#cloud-config
+users:
+  - name: ubuntu
+    ssh_authorized_keys:
+      - ${trimspace(local.ssh_public_key)}
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+runcmd:
+  - systemctl restart ssh
+EOF
+  }
+
+  labels = {
+    role = count.index == 0 ? "master" : "worker"
+  }
+}
+```
+
+В уже существующий файл ```variables.tf``` добавлены две переменные:
+```bash
+variable "ssh_public_key_path" {
+  description = "Путь к публичному SSH-ключу"
+  type        = string
+  default     = "~/.ssh/homework3818.pub"
+}
+
+variable "ssh_private_key_path" {
+  description = "Путь к приватному SSH-ключу"
+  type        = string
+  default     = "~/.ssh/homework3818"
+}
+```
+
+для вывода IP-адресов создал файл [outputs.tf](https://github.com/Anton-Shcherbatykh/FOPS-38_diplom/blob/main/Files/infrastructure/outputs.tf)
+
+После всего вышеописанного запускаю Terraform
+```bash
+cd ~/diplom-practicum-yc/infrastructure
+terraform init -reconfigure  # переинициализация бэкенда
+terraform plan               # проверка плана
+terraform apply              # создание ресурсов
+```
+
+Результатом этого явилось создание всех необходимых для выполненния данной части задания ресурсов (в виде ВМ и доп.групп безопасности):
+
+![alt text](Pictures/pic12.jpg)
+
+![alt text](Pictures/pic14.jpg)
+
+Для выполнения данной части проекта я также установил Ansible и зависимости
+
+```sudo apt install ansible git python3-pip python3-venv -y```
+
+Затем произвёл клонирование Kubespray и создал виртуальное окружение
+
+```bash
+git clone https://github.com/kubernetes-sigs/kubespray.git
+cd kubespray
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+После того, как всё было успешно установлено 
