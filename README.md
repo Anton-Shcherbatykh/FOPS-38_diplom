@@ -129,7 +129,7 @@ S3-бакет
 
 ---
 
-Создание Kubernetes кластера
+### Создание Kubernetes кластера
 
 В существующий файл [main.tf](https://github.com/Anton-Shcherbatykh/FOPS-38_diplom/blob/main/Files/infrastructure/main.tf) добавлены следующие блоки:
 
