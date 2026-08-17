@@ -383,3 +383,18 @@ kubectl get pods --all-namespaces
 
 - Git репозиторий с тестовым приложением и Dockerfile.
 - Регистри с собранным docker image. В качестве регистри может быть DockerHub или Yandex Container Registry, созданный также с помощью terraform.
+
+---
+
+### Создание тестового приложения
+
+Регистрирую новый репозиторий на GitHub https://github.com/Anton-Shcherbatykh/diplom-nginx-test.
+
+Клонирую его на свою ВМ
+
+```bash
+git clone https://github.com/Anton-Shcherbatykh/diplom-nginx-test.git
+```
+
+![alt text](Pictures/pic028.jpg)
+
