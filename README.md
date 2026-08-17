@@ -398,3 +398,23 @@ git clone https://github.com/Anton-Shcherbatykh/diplom-nginx-test.git
 
 ![alt text](Pictures/pic028.jpg)
 
+Внутри репозитория создаю следующую структуру:
+
+```bash
+├── html/
+│   └── index.html
+├── Dockerfile
+└── README.md
+```
+
+Файлы [html/index.html](https://github.com/Anton-Shcherbatykh/diplom-nginx-test/blob/main/html/index.html) и [Dockerfile](https://github.com/Anton-Shcherbatykh/diplom-nginx-test/blob/main/Dockerfile)
+
+Создаю Yandex Container Registry через Terraform. Чтобы хранить собранный образ, добавляю ресурс для Container Registry в конфигурацию инфраструктуры - в папке ```infrastructure``` создаю файл [registry.tf](https://github.com/Anton-Shcherbatykh/FOPS-38_diplom/blob/main/Files/infrastructure/registry.tf) В этом файле я определил ресурсы для Container Registry и двух сервисных аккаунтов, а также назначил им роли. Код автономный (в отдельном файле), но ссылается на переменные ```var.yc_folder_id``` и т.д., которые уже объявлены в ```variables.tf```.
+
+Два отдельных сервисных аккаунта нужны для разделения прав и обязанностей.
+
+**k8s-node-sa** — используется узлами кластера для скачивания образов из Container Registry. Узлам нужна только роль container-registry.images.puller. Если узлы будут скачивать образы из приватного реестра, они должны аутентифицироваться от имени этого аккаунта. Давать узлам больше прав (например, на загрузку образов) небезопасно.
+
+**ci-sa** — используется CI/CD системой для сборки и загрузки Docker-образов в реестр. Этому аккаунту нужна роль container-registry.images.pusher. Он не используется для деплоя или работы кластера.
+
+Разделение этих ролей соответствует принципу минимально необходимых привилегий (least privilege). Если злоумышленник получит доступ к ключам узлов, он не сможет загружать свои образы в реестр, потому что у узлов нет прав на запись. И наоборот, если доступ к CI-аккаунту будет скомпрометирован, злоумышленник не сможет получить доступ к узлам кластера.
