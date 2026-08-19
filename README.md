@@ -451,3 +451,25 @@ docker build -t cr.yandex/crpdgdp1evbtlskivdrh/test-nginx-app:v1 . #где crpdg
 ```
 
 ![alt text](Pictures/pic022.jpg)
+
+И затем загружаю образ командой
+
+```bash
+docker push cr.yandex/crpdgdp1evbtlskivdrh/test-nginx-app:v1
+```
+
+![alt text](Pictures/pic023.jpg)
+
+Проверяю через консоль YC наличие образа
+
+![alt text](Pictures/pic024.jpg)
+
+![alt text](Pictures/pic025.jpg)
+
+Также проверяю, успешно ли загрузился образ с помощью команды 
+
+```bash
+yc container image list --registry-id crpdgdp1evbtlskivdrh
+```
+
+![alt text](Pictures/pic026.jpg)
