@@ -443,3 +443,11 @@ yc container registry configure-docker
 ```
 
 ![alt text](Pictures/pic021.jpg)
+
+Затем собираю Docker-образ командой 
+
+```bash
+docker build -t cr.yandex/crpdgdp1evbtlskivdrh/test-nginx-app:v1 . #где crpdgdp1evbtlskivdrh - ID моего реестра
+```
+
+![alt text](Pictures/pic022.jpg)
