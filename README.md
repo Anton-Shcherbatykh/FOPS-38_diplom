@@ -473,3 +473,8 @@ yc container image list --registry-id crpdgdp1evbtlskivdrh
 ```
 
 ![alt text](Pictures/pic026.jpg)
+
+
+Требуемый для данной части дипломного проекта результат достигнут.
+- Git репозиторий с тестовым приложением и Dockerfile.
+- Получен регистри с собранным docker image. В качестве регистри выступил Yandex Container Registry, созданный с помощью terraform.
