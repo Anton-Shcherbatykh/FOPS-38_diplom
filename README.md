@@ -537,6 +537,8 @@ helm install monitoring prometheus-community/kube-prometheus-stack \
 
 Затем проверяю, как отображаются дашборды в Grafana
 
+![alt text](Pictures/pic033_1.jpg)
+
 ![alt text](Pictures/pic033.jpg)
 
 Вижу, что мониторинг узла, выбранного в качестве примера (master) производится корректно. На скриншоте ниже - подтверждение IP-адреса выбранного узла
