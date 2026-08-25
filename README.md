@@ -478,3 +478,68 @@ yc container image list --registry-id crpdgdp1evbtlskivdrh
 Требуемый для данной части дипломного проекта результат достигнут.
 - Именю в наличии Git-репозиторий с тестовым приложением и Dockerfile.
 - Получен регистри с собранным docker image. В качестве регистри выступил Yandex Container Registry, созданный с помощью terraform.
+
+## Этапы выполнения:
+
+### Этап 4. Подготовка cистемы мониторинга и деплой приложения
+
+Уже должны быть готовы конфигурации для автоматического создания облачной инфраструктуры и поднятия Kubernetes кластера.
+Теперь необходимо подготовить конфигурационные файлы для настройки нашего Kubernetes кластера.
+
+Цель:
+
+- Задеплоить в кластер prometheus, grafana, alertmanager, экспортер основных метрик Kubernetes.
+- Задеплоить тестовое приложение, например, nginx сервер отдающий статическую страницу.
+
+Способ выполнения:
+
+- Воспользоваться пакетом kube-prometheus, который уже включает в себя Kubernetes оператор для grafana, prometheus, alertmanager и node_exporter. Альтернативный вариант - использовать набор helm чартов от bitnami.
+- Деплой инфраструктуры в terraform pipeline
+- Если на первом этапе вы не воспользовались Terraform Cloud, то задеплойте и настройте в кластере atlantis для отслеживания изменений инфраструктуры. Альтернативный вариант 3 задания: вместо Terraform Cloud или atlantis настройте на автоматический запуск и применение конфигурации terraform из вашего git-репозитория в выбранной вами CI-CD системе при любом комите в main ветку. Предоставьте скриншоты работы пайплайна из CI/CD системы.
+
+Ожидаемый результат:
+
+- Git репозиторий с конфигурационными файлами для настройки Kubernetes.
+- Http доступ на 80 порту к web интерфейсу grafana.
+- Дашборды в grafana отображающие состояние Kubernetes кластера.
+- Http доступ на 80 порту к тестовому приложению.
+- Atlantis или terraform cloud или ci/cd-terraform
+
+### Подготовка cистемы мониторинга и деплой приложения
+
+После повторного разворачивания инфраструктуры и проверки доступности кластера добавляю репозиторий *Prometheus Community*
+
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+```
+
+![alt text](Pictures/pic030.jpg)
+
+Затем устанавливаю kube-prometheus-stack (чтобы быстро развернуть единый стек мониторинга и оповещений Kubernetes. Он позволяет видеть состояние кластера, нод, pod’ов и приложений, строить дашборды и получать алерты при проблемах. Чарт объединяет Prometheus, Grafana, Alertmanager, Prometheus Operator, Node Exporter и kube-state-metrics в одну управляемую Helm-установку).
+
+```bash
+helm install monitoring prometheus-community/kube-prometheus-stack \
+  --namespace monitoring \
+  --create-namespace \
+  --set grafana.service.type=LoadBalancer \
+  --set grafana.service.port=80 \
+  --set prometheus.service.type=LoadBalancer \
+  --set alertmanager.service.type=LoadBalancer
+```
+
+![alt text](Pictures/pic031.jpg)
+
+Проверяю статус подов ```kubectl get pods -n monitoring```
+
+![alt text](Pictures/pic032.jpg)
+
+Поды имеют разное время "жизни" из-за того, что для некоторых пришлось настраивать зеркала для скачивания, т.к. из основных источников они были недоступны для скачивания.
+
+Затем проверяю, как отображаются дашборды в Grafana
+
+![alt text](Pictures/pic033.jpg)
+
+Вижу, что мониторинг узла, выбранного в качестве примера (master) производится корректно. На скриншоте ниже - подтверждение IP-адреса выбранного узла
+
+![alt text](Pictures/pic034.jpg)
+
