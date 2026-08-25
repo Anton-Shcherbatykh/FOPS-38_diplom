@@ -559,6 +559,6 @@ helm install monitoring prometheus-community/kube-prometheus-stack \
 
 Для деплоя тестового приложения (а у нас это самый что ни на есть Nginx) создаю [манифест](https://github.com/Anton-Shcherbatykh/FOPS-38_diplom/blob/main/Files/nginx-hostport.yaml) с ```hostPort: 80``` на одном из узлов (т.к. Grafana заняла порт 80 узле worker2, то манифест размещу на worker1, где 80-й порт пока свободен).
 
-После успешного запуска получаю доступ из браузера локальной машины
+После успешного запуска получаю доступ из браузера локальной машины с текстом из ранее указанного файла [index.html](https://github.com/Anton-Shcherbatykh/diplom-nginx-test/blob/main/html/index.html)
 
 ![alt text](Pictures/pic038.jpg)
