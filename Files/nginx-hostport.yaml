@@ -1,0 +1,38 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-nginx
+  labels:
+    app: test-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-nginx
+  template:
+    metadata:
+      labels:
+        app: test-nginx
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: worker1   # закрепляю на worker1
+      containers:
+      - name: nginx
+        image: cr.yandex/crpdgdp1evbtlskivdrh/test-nginx-app:v1
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          hostPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-nginx-service
+spec:
+  type: ClusterIP
+  selector:
+    app: test-nginx
+  ports:
+  - port: 80
+    targetPort: 80
