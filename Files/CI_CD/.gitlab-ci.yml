@@ -1,0 +1,49 @@
+image: alpine:latest
+
+services:
+  - docker:dind
+
+stages:
+  - build
+  - deploy
+
+variables:
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_DRIVER: overlay2
+  REGISTRY: cr.yandex
+  IMAGE: $REGISTRY/$REGISTRY_ID/$IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+
+before_script:
+  - apk add --no-cache bash curl jq docker docker-compose
+  - curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
+  - export PATH=$PATH:$HOME/yandex-cloud/bin
+  - yc config set service-account-key <(echo "$YC_SA_KEY")
+  - yc container registry configure-docker
+  # Проверка доступа к Docker daemon
+  - docker info
+
+build:
+  stage: build
+  script:
+    - docker build --build-arg VERSION=$CI_COMMIT_SHORT_SHA -t $IMAGE .
+    - docker push $IMAGE
+  only:
+    - main
+
+deploy:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache curl bash
+    - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    - chmod +x kubectl
+    - mv kubectl /usr/local/bin/
+    - mkdir -p $HOME/.kube
+    - echo "$KUBECONFIG" > $HOME/.kube/config
+    - export KUBECONFIG=$HOME/.kube/config
+  script:
+    - kubectl set image deployment/test-nginx nginx=$IMAGE -n default
+    - kubectl rollout status deployment/test-nginx -n default
+  only:
+    - main
