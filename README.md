@@ -591,4 +591,52 @@ helm install monitoring prometheus-community/kube-prometheus-stack \
 
 Приложение представляет собой статический веб-сервер на базе Nginx (как выше уже описано). [Dockerfile](https://github.com/Anton-Shcherbatykh/FOPS-38_diplom/blob/main/Files/CI_CD/Dockerfile) настроил таким образом, чтобы при сборке можно было передать версию через аргумент VERSION, который затем подставлялся в HTML-страницу, отображая актуальный хэш коммита
 
+Для успешной сборки и деплоя в GitLab добавил следующие переменные CI/CD (Settings → CI/CD → Variables):
 
+```REGISTRY_ID``` — идентификатор Yandex Container Registry.
+
+```IMAGE_NAME``` — имя Docker-образа.
+
+```YC_SA_KEY``` — JSON-ключ сервисного аккаунта с правами container-registry.images.pusher и container-registry.images.puller.
+
+```KUBECONFIG``` — содержимое конфигурационного файла для доступа к Kubernetes-кластеру (с публичным IP мастера и флагом insecure-skip-tls-verify: true для обхода проблем с сертификатами).
+
+![alt text](Pictures/pic048.jpg)
+
+Эти переменные обеспечивают аутентификацию в Yandex Cloud и доступ к кластеру.
+
+Немного подробнее про пайплайн ```.gitlab-ci.yml```
+
+Пайплайн состоит из двух стадий: build и deploy.
+
+Стадия ```build```:
+
+- Устанавливается Docker и Yandex Cloud CLI.
+- Выполняется аутентификация в реестре с использованием YC_SA_KEY.
+- Собирается Docker-образ с тегом, равным короткому хэшу коммита (CI_COMMIT_SHORT_SHA).
+- Образ загружается в Yandex Container Registry.
+
+![alt text](Pictures/pic042_1.jpg)
+
+![alt text](Pictures/pic042.jpg)
+
+
+Стадия ```deploy```:
+
+- Устанавливается ```kubectl```.
+- Конфигурационный файл KUBECONFIG записывается в ```~/.kube/config```.
+- Выполняется команда ```kubectl set image``` для обновления Deployment в кластере новым образом.
+- Производится контроль состояния обновления через ```kubectl rollout status```.
+- Пайплайн запускается автоматически при каждом пуше в ветку ```main```
+
+![alt text](Pictures/pic043.jpg)
+
+![alt text](Pictures/pic044.jpg)
+
+Результат проверки через браузер на локальной домашней машине
+
+![alt text](Pictures/pic045.jpg)
+
+Т.к. задание выполнялось в несколько подходов, то IP-адреса не совпадают с ранее созданными. В текущий отрезок времени worker2 имел IP-адрес (на предыдущих этапах писал, что nginx разворачивал на worker1, т.к. на worker2 была Grafana), указанный на скриншоте ниже по тексту
+  
+![alt text](Pictures/pic046.jpg)
