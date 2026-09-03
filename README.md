@@ -505,6 +505,8 @@ yc container image list --registry-id crpdgdp1evbtlskivdrh
 - Http доступ на 80 порту к тестовому приложению.
 - Atlantis или terraform cloud или ci/cd-terraform
 
+---
+
 ### Подготовка cистемы мониторинга и деплой приложения
 
 После повторного разворачивания инфраструктуры и проверки доступности кластера добавляю репозиторий *Prometheus Community*
