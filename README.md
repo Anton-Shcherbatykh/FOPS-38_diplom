@@ -660,3 +660,5 @@ P.S. проверил спустя час - всё работает коррек
 ![alt text](Pictures/pic049.jpg)
 
 ![alt text](Pictures/pic050.jpg)
+
+![alt text](Pictures/pic051.jpg)
